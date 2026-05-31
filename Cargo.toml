@@ -1,0 +1,28 @@
+[package]
+name = "streaming_tools"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+http-body-util = "0.1"
+hyper = { version = "1.8", features = ["http2"] }
+hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "http2"] }
+hyper-util = "0.1"
+rustls = { version = "0.23", default-features = false }
+serde = { version = "1", features = ["derive"] }
+tokio-util = "0.7"
+prost = "0.14"
+futures = "0.3"
+thiserror = "2.0"
+bytes = { version = "1.10"}
+async-compression = { version = "0.4", features = ["gzip", "tokio","futures-io"] }
+futures-util = "0.3"
+tracing = "0.1.44"
+webpki-roots = "1.0.7"
+http = "1.4"
+
+[features]
+default = ["aws-lc-rs"]
+ring = ["rustls/ring","rustls/tls12","rustls/std" ]
+aws-lc-rs = ["rustls/aws-lc-rs","rustls/tls12","rustls/std"]
