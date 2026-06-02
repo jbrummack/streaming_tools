@@ -15,12 +15,12 @@ tokio-util = "0.7"
 prost = "0.14"
 futures = "0.3"
 thiserror = "2.0"
-bytes = { version = "1.10"}
+bytes = { version = "1"}
 async-compression = { version = "0.4", features = ["gzip", "tokio","futures-io"] }
 futures-util = "0.3"
-tracing = "0.1.44"
-webpki-roots = "1.0.7"
-http = "1.4"
+tracing = "0.1"
+webpki-roots = "1"
+http = "1"
 
 [features]
 default = ["aws-lc-rs"]
