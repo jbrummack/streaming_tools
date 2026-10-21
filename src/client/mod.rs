@@ -33,13 +33,17 @@ impl ClientWrapper<Full<Bytes>> {
 }
 pub fn config() -> HttpsConnector<HttpConnector> {
     let mut root_store = rustls::RootCertStore::empty();
-    root_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
+    // OS trust store (Security.framework on Apple, system cacerts on Android/Linux)
+    let native = rustls_native_certs::load_native_certs();
+    for err in &native.errors {
+        tracing::warn!("Failed to load a native root certificate: {err}");
+    }
+    let (_added, _ignored) = root_store.add_parsable_certificates(native.certs);
     let config = rustls::ClientConfig::builder()
         .with_root_certificates(root_store)
         .with_no_client_auth();
     let https = HttpsConnectorBuilder::new()
         .with_tls_config(config)
-        //.with_native_roots()? // Or .with_webpki_roots()
         .https_only()
         .enable_http2()
         //.enable_http2()
