@@ -31,6 +31,7 @@ impl ClientWrapper<Full<Bytes>> {
         Ok(StreamingResponse::new(body).await)
     }
 }
+/// A connector that trusts the system roots through `rustls-native-certs`.
 pub fn config() -> HttpsConnector<HttpConnector> {
     let mut root_store = rustls::RootCertStore::empty();
     // OS trust store (Security.framework on Apple, system cacerts on Android/Linux)
@@ -42,6 +43,11 @@ pub fn config() -> HttpsConnector<HttpConnector> {
     let config = rustls::ClientConfig::builder()
         .with_root_certificates(root_store)
         .with_no_client_auth();
+    config_with(config)
+}
+/// A connector with the caller's TLS configuration, for platforms where the roots cannot be loaded as certificates
+/// (iOS: the caller passes a config that verifies through the system).
+pub fn config_with(config: rustls::ClientConfig) -> HttpsConnector<HttpConnector> {
     let https = HttpsConnectorBuilder::new()
         .with_tls_config(config)
         .https_only()
@@ -55,8 +61,14 @@ pub fn config() -> HttpsConnector<HttpConnector> {
 pub struct Downloader(ClientWrapper<Full<Bytes>>);
 impl Downloader {
     pub fn new() -> Self {
+        Self::with_connector(config())
+    }
+    pub fn with_tls_config(config: rustls::ClientConfig) -> Self {
+        Self::with_connector(config_with(config))
+    }
+    fn with_connector(connector: HttpsConnector<HttpConnector>) -> Self {
         Self(ClientWrapper {
-            client: Client::builder(hyper_util::rt::TokioExecutor::new()).build(config()),
+            client: Client::builder(hyper_util::rt::TokioExecutor::new()).build(connector),
         })
     }
     pub async fn download_lines(
